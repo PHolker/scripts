@@ -1,0 +1,28 @@
+#!/bin/sh 
+# protect branch from pushes by non-authorized users
+# Volker Kuhlmann (2017)
+ 
+# protected branch name 
+protected_branch="refs/heads/master" 
+# list of authorized users
+authorized_users="Michael|John"
+
+# return value : 0 is OK 
+return_value=0 
+
+# test the query branch against the protected branch
+while read oldrev newrev refname ; do 
+  if test "$refname" = "$protected_branch" 
+  then 
+    echo "CHECKS authorization for protected branch" $protected_branch
+	# test the current user against list of authorized users
+	if [[ "$GOGS_AUTH_USER_NAME" != +($authorized_users) ]]; 
+	then
+       # return value : 1 is NOT OK 
+       return_value=1 
+	   echo "DENIES push to protected branch by" $GOGS_AUTH_USER_NAME
+    fi
+  fi 
+done 
+
+exit $return_value 
